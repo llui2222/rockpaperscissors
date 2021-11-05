@@ -1,54 +1,83 @@
 openapi: "3.0.0"
 info:
   version: 1.0.0
-  title: Swagger Bookphone
+  title: Swagger Rock paper scissors
 paths:
-  /v1/phones:
-    put:
-      summary: book a phone
-      requestBody:
-        description: phone and user IDs
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PhoneUserIds'
-      operationId: BookPhone
-      tags:
-        - bookphone
+  /v1/game:
+    post:
+      summary: start a new game
+      operationId: StartNewGame
       responses:
-        '204':
-          description: booked succesfully
-        '404':
-          description: A phone with the specified ID was not found.
+        '201':
+          description: game created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Game"
+        '422':
+          description: cannot create a game
         default:
           description: unexpected error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /v1/phones/{phoneId}:
+  /v1/game/{gameId}:
     get:
-      summary: Info for a specific phone
-      operationId: exposePhoneById
+      summary: Game
+      operationId: Game
       tags:
-        - phones
+        - game
       parameters:
-        - name: phoneId
+        - name: gameId
           in: path
           required: true
-          description: The id of the phone to retrieve
+          description: The id of the game
           schema:
-            type: long
+            type: integer
       responses:
         '200':
-          description: Expected response to a valid request
+          description: Game
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Phone"
+                $ref: "#/components/schemas/Game"
         '404':
-          description: A phone with the specified ID was not found.
+          description: A game with the specified ID was not found.
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      summary: send your game and current item IDs to server
+      operationId: Play
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          description: The id of the game
+          schema:
+            type: integer
+      requestBody:
+        description: item and player ID
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Item'
+      tags:
+        - play
+      responses:
+        '200':
+          description: played succesfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Item"
+        '404':
+          description: Cannot accept such item for such game Id.
         default:
           description: unexpected error
           content:
@@ -57,45 +86,28 @@ paths:
                 $ref: "#/components/schemas/Error"
 components:
   schemas:
-    PhoneUserIds:
+    Game:
       type: object
       required:
-        - phoneid
-        - userid
+        - gameid
+        - status
       properties:
-        phoneid:
+        gameid:
           type: integer
           format: int64
-        userid:
-          type: integer
-          format: int64
-    User:
-      type: object
-      required:
-        - id
-        - name
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
+        status:
           type: string
-    Phone:
+          enum: [player_failed, server_failed, in_progress, not_identified]
+          default: not_identified
+    Item:
       type: object
       required:
         - id
-        - name
       properties:
         id:
-          type: long
-          format: int64
-        name:
           type: string
-        user:
-          $ref: '#/components/schemas/User'
-        bookedAt:
-          type: string
-          format: date-time
+          enum: [rock, paper, scissors]
+          default: rock
     Error:
       type: object
       required:

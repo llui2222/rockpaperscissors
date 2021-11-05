@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
 	id("org.springframework.boot") version "2.5.6"
@@ -24,19 +23,19 @@ repositories {
 }
 
 dependencies {
+	compileOnly("org.projectlombok:lombok")
+	annotationProcessor("org.projectlombok:lombok:1.18.22")
+	implementation("org.mapstruct:mapstruct:1.4.2.Final")
+	implementation("org.mapstruct:mapstruct-processor:1.4.2.Final")
 	implementation("javax.validation:validation-api:2.0.1.Final")
-	implementation("org.flywaydb:flyway-core")
-	api("io.springfox:springfox-swagger2:3.0.0")
-	api("io.springfox:springfox-swagger-ui:3.0.0")
+	implementation("org.liquibase:liquibase-core")
+	api("io.springfox:springfox-swagger2:2.9.2")
+	api("io.springfox:springfox-swagger-ui:2.9.2")
 	api("org.openapitools:jackson-databind-nullable:0.2.1")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-	implementation("org.jetbrains.kotlin:kotlin-reflect")
-	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-	compileOnly("org.projectlombok:lombok")
 	runtimeOnly("com.h2database:h2")
-	annotationProcessor("org.projectlombok:lombok")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 val spec = "$rootDir/src/main/resources/openapi/api.yml"
@@ -48,9 +47,9 @@ openApiGenerate {
 	inputSpec.set(spec)
 	outputDir.set(generatedSourcesDir)
 
-	apiPackage.set("org.openapi.example.api")
-	invokerPackage.set("org.openapi.example.invoker")
-	modelPackage.set("org.openapi.example.model")
+	apiPackage.set("org.openapi.rockpaperscissors.api")
+	invokerPackage.set("org.openapi.rockpaperscissors.invoker")
+	modelPackage.set("org.openapi.rockpaperscissors.model")
 
 	configOptions.set(mapOf(
 		"dateLibrary" to "java8"
@@ -71,14 +70,11 @@ tasks {
 	val compileJava by getting {
 		dependsOn(openApiGenerate)
 	}
-}
-tasks.withType<KotlinCompile> {
-	kotlinOptions {
-		freeCompilerArgs = listOf("-Xjsr305=strict")
-		jvmTarget = "11"
+
+	val compileKotlin by getting {
+		dependsOn(openApiGenerate)
 	}
 }
-
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
